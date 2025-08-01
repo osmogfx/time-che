@@ -1,0 +1,72 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube Upload Time (Pakistan)</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+    input, button { padding: 10px; font-size: 1rem; width: 100%; margin-bottom: 10px; }
+    #result { margin-top: 20px; font-weight: bold; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+  <h2>YouTube Upload Time Checker (Pakistan Time)</h2>
+  <input type="text" id="videoUrl" placeholder="Paste YouTube video URL here">
+  <button onclick="getUploadTime()">Check Upload Time</button>
+  <div id="result"></div> <script>
+    async function getUploadTime() {
+      const url = document.getElementById('videoUrl').value.trim();
+      const videoId = extractVideoID(url);
+      const resultDiv = document.getElementById('result');
+
+
+      if (!videoId) {
+        resultDiv.innerText = '❌ Invalid YouTube URL';
+        return;
+      }
+
+
+      const apiUrl = `https://yt.lemnoslife.com/no-key/videos?part=snippet&id=${videoId}`;
+      resultDiv.innerText = '⏳ Fetching...';
+
+
+      try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+
+        if (!data.items || data.items.length === 0) {
+          resultDiv.innerText = '❌ Video not found.';
+          return;
+        }
+
+
+        const publishedAt = data.items[0].snippet.publishedAt;
+        const utcDate = new Date(publishedAt);
+
+
+        // Convert to Pakistan Time (UTC+5)
+        const pakistanTime = new Date(utcDate.getTime() + (5 * 60 * 60 * 1000));
+        const formatted = pakistanTime.toLocaleString('en-PK', {
+          timeZone: 'Asia/Karachi',
+          year: 'numeric', month: 'short', day: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit',
+          hour12: true
+        });
+
+
+        resultDiv.innerText = `📍 Upload Time in Pakistan: ${formatted}`;
+
+
+      } catch (error) {
+        resultDiv.innerText = '❌ Error fetching data';
+        console.error(error);
+      }
+    }
+
+
+    function extractVideoID(url) {
+      const match = url.match(/[?&]v=([^&#]*)/) || url.match(/youtu\.be\/([^?&#]*)/);
+      return match ? match[1] : null;
+    }
+  </script></body>
+</html>
