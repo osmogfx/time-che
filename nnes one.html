@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube Upload Time Checker (PKT)</title>
+</head>
+<body>
+    <h2>YouTube Upload Time Checker (Pakistan Time)</h2>
+    <input type="text" id="youtubeUrl" placeholder="Paste YouTube Video URL" size="50">
+    <button onclick="checkUploadTime()">Check Upload Time</button>
+    <p id="result"></p>
+
+
+    <script>
+        function extractVideoId(url) {
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/;
+            const match = url.match(regex);
+            return match ? match[1] : null;
+        }
+
+
+        async function checkUploadTime() {
+            const url = document.getElementById('youtubeUrl').value;
+            const videoId = extractVideoId(url);
+            const resultElem = document.getElementById('result');
+
+
+            if (!videoId) {
+                resultElem.textContent = "Invalid YouTube URL!";
+                return;
+            }
+
+
+            resultElem.textContent = "Fetching upload time...";
+
+
+            try {
+                const apiUrl = `https://corsproxy.io/?https://yt.lemnoslife.com/no-key/videos?part=snippet&id=${videoId}`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+
+                if (!data.items || data.items.length === 0) {
+                    resultElem.textContent = "Video not found.";
+                    return;
+                }
+
+
+                const uploadDate = new Date(data.items[0].snippet.publishedAt);
+                const pkTime = new Date(uploadDate.getTime() + (5 * 60 * 60 * 1000)); // UTC+5 for Pakistan
+
+
+                resultElem.textContent = `Upload Time in Pakistan: ${pkTime.toLocaleString()}`;
+            } catch (error) {
+                resultElem.textContent = "Error fetching data.";
+            }
+        }
+    </script>
+</body>
+</html>
